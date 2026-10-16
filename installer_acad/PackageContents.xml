@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ApplicationPackage SchemaVersion="1.0" AutodeskProduct="AutoCAD" Name="Teplov Print" AppVersion="1.0.6" ProductCode="{ae537d93-f446-41d3-97b7-b61d822cb6c4}" Description="Teplov Print for AutoCAD">
+<ApplicationPackage SchemaVersion="1.0" AutodeskProduct="AutoCAD" Name="Teplov Print" AppVersion="1.0.7" ProductCode="{ae537d93-f446-41d3-97b7-b61d822cb6c4}" Description="Teplov Print for AutoCAD">
   <CompanyDetails Name="Вячеслав Теплов" />
   <Components>
     <ComponentEntry AppName="TeplovPrintLegacy" AppType=".Net" ModuleName="./Contents/AutoCAD2015-2024/AcadBatchPlot.dll" LoadOnAutoCADStartup="True" LoadOnCommandInvocation="True">

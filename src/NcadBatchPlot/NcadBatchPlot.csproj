@@ -6,7 +6,7 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <PlatformTarget>x64</PlatformTarget>
-    <Version>1.0.6</Version>
+    <Version>1.0.7</Version>
     <!--
       Four-part version on purpose: WPF writes it into the pack URI of every XAML page
       ("/NcadBatchPlot;V1.0.0.0;component/...") and looks for an already loaded assembly with Version.Equals.
@@ -14,8 +14,8 @@
       nanoCAD 24 failed with "the component does not have a resource identified by the URI" (issue #3).
     -->
     <AssemblyVersion>$(Version).0</AssemblyVersion>
-    <FileVersion>1.0.6</FileVersion>
-    <InformationalVersion>1.0.6</InformationalVersion>
+    <FileVersion>1.0.7</FileVersion>
+    <InformationalVersion>1.0.7</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <AssemblyName>NcadBatchPlot</AssemblyName>
     <RootNamespace>ZwcadBatchPlot</RootNamespace>

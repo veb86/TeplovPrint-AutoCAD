@@ -59,6 +59,8 @@ public static partial class PlotterService
             });
 #endif
             WaitForPlotIdle();
+            // Issue #15: a Windows printer (PDFCreator and other virtual PDF printers) writes PostScript, not PDF.
+            PrinterPdfOutput.EnsurePdf(job.OutputPath, deviceName);
             ValidatePlotOutput(job.OutputPath);
         }
         finally

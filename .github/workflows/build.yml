@@ -45,9 +45,17 @@ jobs:
         shell: pwsh
         run: ./scripts/build-dll.ps1 -Target All -Configuration Release
 
+      - name: Install Ghostscript (PostScript -> PDF of Windows printers, issue #15)
+        shell: pwsh
+        timeout-minutes: 10
+        run: choco install ghostscript -y --no-progress
+
       - name: Test nanoCAD 24 plugin
         shell: pwsh
         timeout-minutes: 10
+        env:
+          # The real PostScript -> PDF conversion must run here, not be skipped.
+          TEPLOV_TEST_REQUIRE_GHOSTSCRIPT: '1'
         run: dotnet test tests/NcadBatchPlot.Tests/NcadBatchPlot.Tests.csproj -c Release --logger "console;verbosity=normal"
 
       - name: Package release archives
