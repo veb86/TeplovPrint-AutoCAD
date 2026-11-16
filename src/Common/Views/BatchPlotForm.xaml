@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ZwcadBatchPlot"
         x:Class="ZwcadBatchPlot.BatchPlotForm"
-        Title="Teplov Print — пакетная печать по форматам V1.0.7"
+        Title="Teplov Print — пакетная печать по форматам V1.0.8"
         Width="900" Height="520"
         MinWidth="720" MinHeight="460"
         WindowStartupLocation="CenterScreen"
@@ -71,7 +71,7 @@
         <Button x:Name="_textRegionsButton" Content="Поля текста" MinWidth="100"
                         Style="{StaticResource PluginButtonStyle}" Margin="0,0,3,0"
                         Click="ConfigureTextRegions_Click"
-                        ToolTip="Для выбранной распознанной рамки задать резервные области Наименования и № листа. Эти области используются только если штатные поля рамки пусты." />
+                        ToolTip="Для выбранной распознанной рамки задать резервные области Наименования и № листа. Эти области используются только если штатные поля рамки пусты. Положение областей отсчитывается от правого нижнего угла рамки (там находится штамп), поэтому одна настройка подходит для листов любого формата." />
         <Button x:Name="_changeFormatButton" Content="Изменить масштаб формата" MinWidth="170"
                         Style="{StaticResource PluginButtonStyle}" Margin="0,0,3,0"
                         Click="ChangeFormat_Click"
