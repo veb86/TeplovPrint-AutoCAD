@@ -55,8 +55,8 @@ dotnet test tests/NcadBatchPlot.Tests
 `scripts/package-release.ps1` формирует локальный выпуск из трёх папок сборки. Перед запуском соберите все DLL (`-Target All`):
 
 ```powershell
-.\scripts\package-release.ps1 -Version 1.0.7
-.\scripts\test-release-package.ps1 -Version 1.0.7
+.\scripts\package-release.ps1 -Version 1.0.8
+.\scripts\test-release-package.ps1 -Version 1.0.8
 ```
 
 Архивы создаются в папке `release` и не входят в исходный код:

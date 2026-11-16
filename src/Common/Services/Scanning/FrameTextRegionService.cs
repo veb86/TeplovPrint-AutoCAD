@@ -13,8 +13,9 @@ namespace ZwcadBatchPlot;
 
 /// <summary>
 /// Универсальные резервные области номера и наименования листа.
-/// Профиль хранится в мм бумаги относительно правого нижнего угла рамки,
-/// поэтому одна настройка работает при разных масштабах модели и форматах бумаги.
+/// Профиль хранится в мм бумаги относительно правого нижнего угла рамки (там всегда находится штамп),
+/// поэтому одна настройка работает при разных масштабах модели, форматах и ориентации бумаги.
+/// Пересчёт мм ↔ единицы чертежа — <see cref="FrameTextRegionGeometry"/>.
 /// </summary>
 public static class FrameTextRegionService
 {
@@ -100,9 +101,9 @@ public static class FrameTextRegionService
             return false;
         }
 
-        var sx = (frameWorld.MaxX - frameWorld.MinX) / job.PaperWidthMm;
-        var sy = (frameWorld.MaxY - frameWorld.MinY) / job.PaperHeightMm;
-        if (Math.Abs(sx) <= 1e-9 || Math.Abs(sy) <= 1e-9)
+        // Один масштаб для обеих осей, не зависящий от ориентации листа (issue #17).
+        if (!FrameTextRegionGeometry.TryGetDrawingUnitsPerMm(
+                frameWorld, job.PaperWidthMm, job.PaperHeightMm, out var drawingUnitsPerMm))
         {
             error = "Не удалось вычислить масштаб рамки.";
             return false;
@@ -112,8 +113,8 @@ public static class FrameTextRegionService
         {
             Key = GetProfileKey(job.FrameSource, job.BlockName),
             Enabled = true,
-            TitleRegionMm = ToPaperRelative(titleWorld, frameWorld, sx, sy),
-            DrawingNumberRegionMm = ToPaperRelative(numberWorld, frameWorld, sx, sy)
+            TitleRegionMm = FrameTextRegionGeometry.ToPaperRelative(titleWorld, frameWorld, drawingUnitsPerMm),
+            DrawingNumberRegionMm = FrameTextRegionGeometry.ToPaperRelative(numberWorld, frameWorld, drawingUnitsPerMm)
         };
         return true;
     }
@@ -136,13 +137,18 @@ public static class FrameTextRegionService
         if (paperWidthMm <= 0 || paperHeightMm <= 0)
             return false;
 
-        var sx = (frameWorld.MaxX - frameWorld.MinX) / paperWidthMm;
-        var sy = (frameWorld.MaxY - frameWorld.MinY) / paperHeightMm;
-        if (Math.Abs(sx) <= 1e-9 || Math.Abs(sy) <= 1e-9)
+        // Поиск ведётся от правого нижнего угла рамки одним масштабом для обеих осей:
+        // штамп на листе любого формата и ориентации прижат к этому углу (issue #17).
+        if (!FrameTextRegionGeometry.TryGetDrawingUnitsPerMm(
+                frameWorld, paperWidthMm, paperHeightMm, out var drawingUnitsPerMm))
             return false;
 
-        var titleRegion = ToWorld(profile.TitleRegionMm, frameWorld, sx, sy);
-        var numberRegion = ToWorld(profile.DrawingNumberRegionMm, frameWorld, sx, sy);
+        var titleRegion = profile.TitleRegionMm == null
+            ? new LocalRectangle()
+            : FrameTextRegionGeometry.ToWorld(profile.TitleRegionMm, frameWorld, drawingUnitsPerMm);
+        var numberRegion = profile.DrawingNumberRegionMm == null
+            ? new LocalRectangle()
+            : FrameTextRegionGeometry.ToWorld(profile.DrawingNumberRegionMm, frameWorld, drawingUnitsPerMm);
 
         if (titleRegion.HasArea())
             title = CadTextExtractor.ExtractWorldRegionText(tr, owner, titleRegion, ownerTextCache).Trim();
@@ -162,31 +168,5 @@ public static class FrameTextRegionService
         }
 
         return LocalRectangle.FromPoints(job.MinX, job.MinY, job.MaxX, job.MaxY);
-    }
-
-    private static LocalRectangle ToPaperRelative(
-        LocalRectangle worldRegion,
-        LocalRectangle frameWorld,
-        double sx,
-        double sy)
-    {
-        return LocalRectangle.FromPoints(
-            (worldRegion.MinX - frameWorld.MaxX) / sx,
-            (worldRegion.MinY - frameWorld.MinY) / sy,
-            (worldRegion.MaxX - frameWorld.MaxX) / sx,
-            (worldRegion.MaxY - frameWorld.MinY) / sy);
-    }
-
-    private static LocalRectangle ToWorld(
-        LocalRectangle paperRegion,
-        LocalRectangle frameWorld,
-        double sx,
-        double sy)
-    {
-        return LocalRectangle.FromPoints(
-            frameWorld.MaxX + paperRegion.MinX * sx,
-            frameWorld.MinY + paperRegion.MinY * sy,
-            frameWorld.MaxX + paperRegion.MaxX * sx,
-            frameWorld.MinY + paperRegion.MaxY * sy);
     }
 }
