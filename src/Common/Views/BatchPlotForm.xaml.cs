@@ -3023,6 +3023,10 @@ public sealed partial class BatchPlotForm : Window
         try
         {
             var editor = _currentDocument.Editor;
+            // Editor.GetPoint возвращает точки в текущей ПСК, а рамка задана в МСК:
+            // переводим области в МСК, иначе при повёрнутой/смещённой ПСК смещения
+            // от правого нижнего угла рамки сохраняются неверно (issue #17).
+            var ucsToWorld = GetCurrentUcsToWorld(editor);
             if (!BatchPlotCommands.TryGetRegion(
                     editor,
                     "\nУкажите первый угол области НАИМЕНОВАНИЯ листа: ",
@@ -3042,6 +3046,9 @@ public sealed partial class BatchPlotForm : Window
             {
                 return;
             }
+
+            titleRegion = UcsRegionToWorld(titleRegion, ucsToWorld);
+            numberRegion = UcsRegionToWorld(numberRegion, ucsToWorld);
         }
         finally
         {
@@ -3066,12 +3073,46 @@ public sealed partial class BatchPlotForm : Window
 
         System.Windows.MessageBox.Show(
             "Области сохранены.\n\n" +
+            "Положение областей отсчитывается от ПРАВОГО НИЖНЕГО угла рамки (там находится штамп) " +
+            "в мм бумаги, поэтому одна настройка подходит для листов любого формата и ориентации.\n\n" +
             "При следующем сканировании они будут использоваться только как резерв:\n" +
             "• если штатный номер листа пуст — берётся TEXT/MTEXT из области номера;\n" +
             "• если штатное наименование пусто — берётся TEXT/MTEXT из области наименования.",
             "Поля текста",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
+    }
+
+    private static Matrix3d GetCurrentUcsToWorld(Editor editor)
+    {
+        try
+        {
+            return editor.CurrentUserCoordinateSystem;
+        }
+        catch
+        {
+            return Matrix3d.Identity;
+        }
+    }
+
+    /// <summary>Прямоугольник, указанный в ПСК, → охватывающий прямоугольник в МСК (по всем четырём углам).</summary>
+    private static LocalRectangle UcsRegionToWorld(LocalRectangle ucsRegion, Matrix3d ucsToWorld)
+    {
+        if (ucsToWorld.IsEqualTo(Matrix3d.Identity))
+            return ucsRegion;
+
+        var corners = new[]
+        {
+            new Point3d(ucsRegion.MinX, ucsRegion.MinY, 0).TransformBy(ucsToWorld),
+            new Point3d(ucsRegion.MaxX, ucsRegion.MinY, 0).TransformBy(ucsToWorld),
+            new Point3d(ucsRegion.MaxX, ucsRegion.MaxY, 0).TransformBy(ucsToWorld),
+            new Point3d(ucsRegion.MinX, ucsRegion.MaxY, 0).TransformBy(ucsToWorld)
+        };
+        return LocalRectangle.FromPoints(
+            corners.Min(point => point.X),
+            corners.Min(point => point.Y),
+            corners.Max(point => point.X),
+            corners.Max(point => point.Y));
     }
 
     private bool IsJobFromCurrentDocument(PlotJob job)
